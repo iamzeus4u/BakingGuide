@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Baking Guide</string>
+
+    <plurals name="servings">
+        <item quantity="one">Recipe for one serving.</item>
+        <item quantity="other">Recipe for %d servings.</item>
+    </plurals>
+    <plurals name="ingredients">
+        <item quantity="one">One ingredient and</item>
+        <item quantity="other">%d ingredients and</item>
+    </plurals>
+    <plurals name="steps">
+        <item quantity="one">one step away from yummy.</item>
+        <item quantity="other">%d steps away from yummy.</item>
+    </plurals>
+    <string name="title_recipe_list">Recipes</string>
+    <string name="title_recipe_detail">Recipe Detail</string>
+    <string name="recipe_ingredient_item_title">Ingredients</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_item_list">Items</string>
+    <string name="title_item_detail">Item Detail</string>
+
+
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="restart">Restart</string>
+
+
+    <string name="guess">Can you guess the composer?</string>
+    <string name="notification_text">Press play to hear the piece!</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="empty_view_text">database is empty</string>
+    <string name="image_description">the image for the selected recipe</string>
+</resources>
