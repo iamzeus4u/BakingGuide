@@ -22,7 +22,7 @@ public class BakingAppWidget extends AppWidgetProvider {
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
         int columns = getCellsForSize(width);
-        RemoteViews rv = getGardenGridRemoteView(context, columns);
+        RemoteViews rv = getStepListRemoteView(context, columns);
         appWidgetManager.updateAppWidget(appWidgetId, rv);
     }
 
@@ -50,7 +50,7 @@ public class BakingAppWidget extends AppWidgetProvider {
         // Enter relevant functionality for when the last widget is disabled
     }
 
-    private static RemoteViews getGardenGridRemoteView(Context context, int columns) {
+    private static RemoteViews getStepListRemoteView(Context context, int columns) {
         RemoteViews views;
         if (columns > 1) {
             views = new RemoteViews(context.getPackageName(), R.layout.widget_list_view);
