@@ -21,9 +21,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -237,7 +239,15 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
             if (position != 0) {
                 final Recipe.Step mItem = mSteps.get(position - 1);
                 holder.mTitleTextView.setText(mItem.getShortDescription());
+                holder.mStepImageView.setVisibility(View.VISIBLE);
+                if (mItem.getThumbnailURL()!=null&&!mItem.getThumbnailURL().isEmpty()) {
+                    Picasso.with(mContext).load(mItem.getThumbnailURL()).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).into(holder.mStepImageView);
+                } else {
+                    holder.mStepImageView.setImageResource(R.drawable.recipe_placeholder);
+                }
             } else {
+
+                holder.mStepImageView.setVisibility(View.INVISIBLE);
                 holder.mTitleTextView.setText(R.string.recipe_ingredient_item_title);
             }
             final int tempPosition = position;
@@ -292,12 +302,14 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
 
         class RecipeItemViewHolder extends RecyclerView.ViewHolder {
             final View mView;
+            final ImageView mStepImageView
             final TextView mTitleTextView;
 
             RecipeItemViewHolder(View view) {
                 super(view);
                 mView = view;
                 mTitleTextView = (TextView) view.findViewById(R.id.title);
+                mStepImageView = (TextView) view.findViewById(R.id.step_image_imageView);
             }
 
         }
