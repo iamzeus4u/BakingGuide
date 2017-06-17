@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -42,12 +43,12 @@ import static xyz.jovialconstruct.zeus.bakingguide.MainActivity.RECIPE_ID;
 
 public class RecipeActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String RECIPE_NAME = "recipe_name";
+    @BindView(R.id.recipe_list)
+    RecyclerView recyclerView;
     private boolean mTwoPane;
     private int mTwoPaneSelectedItem;
     private int mRecipeId;
     private int mPosition = RecyclerView.NO_POSITION;
-    @BindView(R.id.recipe_list)
-    RecyclerView recyclerView;
     private RecipeItemAdapter mRecipeItemAdapter;
     private MediaUtils mediaUtils;
     private MenuItem mFav;
@@ -77,9 +78,9 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
         if (mCursor != null) {
             mCursor.close();
         }
-        mediaUtils = new MediaUtils(this, new MySessionCallback());
         if (findViewById(R.id.recipe_detail_container) != null) {
             mTwoPane = true;
+            mediaUtils = new MediaUtils(this, new MySessionCallback());
             mediaUtils.initializeMediaSession();
         }
 
@@ -92,32 +93,6 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
             mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav1));
         } else {
             mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav0));
-        }
-    }
-
-    private class MySessionCallback extends MediaSessionCompat.Callback {
-        @Override
-        public void onPlay() {
-            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
-        }
-
-        @Override
-        public void onPause() {
-            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
-        }
-
-        @Override
-        public void onSkipToPrevious() {
-            if (mTwoPaneSelectedItem > 0) {
-                mRecipeItemAdapter.selectItem(--mTwoPaneSelectedItem);
-            }
-        }
-
-        @Override
-        public void onSkipToNext() {
-            if (mTwoPaneSelectedItem < mRecipeItemAdapter.getItemCount()) {
-                mRecipeItemAdapter.selectItem(++mTwoPaneSelectedItem);
-            }
         }
     }
 
@@ -140,9 +115,28 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (mTwoPane) {
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            if (fragments != null && !fragments.isEmpty()) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null) {
+                        getSupportFragmentManager().beginTransaction()
+                                .remove(fragment)
+                                .commit();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        mediaUtils.release();
+        if (mediaUtils != null) {
+            mediaUtils.release();
+        }
     }
 
     @Override
@@ -205,6 +199,32 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
         return mediaUtils;
     }
 
+    private class MySessionCallback extends MediaSessionCompat.Callback {
+        @Override
+        public void onPlay() {
+            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
+        }
+
+        @Override
+        public void onPause() {
+            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            if (mTwoPaneSelectedItem > 0) {
+                mRecipeItemAdapter.selectItem(--mTwoPaneSelectedItem);
+            }
+        }
+
+        @Override
+        public void onSkipToNext() {
+            if (mTwoPaneSelectedItem < mRecipeItemAdapter.getItemCount()) {
+                mRecipeItemAdapter.selectItem(++mTwoPaneSelectedItem);
+            }
+        }
+    }
+
     class RecipeItemAdapter extends RecyclerView.Adapter<RecipeItemAdapter.RecipeItemViewHolder> {
 
         private final Cursor mRecipeCursor;
@@ -240,7 +260,7 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
                 final Recipe.Step mItem = mSteps.get(position - 1);
                 holder.mTitleTextView.setText(mItem.getShortDescription());
                 holder.mStepImageView.setVisibility(View.VISIBLE);
-                if (mItem.getThumbnailURL()!=null&&!mItem.getThumbnailURL().isEmpty()) {
+                if (mItem.getThumbnailURL() != null && !mItem.getThumbnailURL().isEmpty()) {
                     Picasso.with(mContext).load(mItem.getThumbnailURL()).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).into(holder.mStepImageView);
                 } else {
                     holder.mStepImageView.setImageResource(R.drawable.recipe_placeholder);
@@ -268,7 +288,6 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
         void selectItem(int mSelectedPosition) {
             final String stepJson;
             final boolean isStep;
-            mediaUtils.setRecipeName(mRecipeName);
 
             if (mSelectedPosition != 0) {
                 final Recipe.Step mItem = mSteps.get(mSelectedPosition - 1);
@@ -281,6 +300,7 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
             }
 
             if (mTwoPane) {
+                mediaUtils.setRecipeName(mRecipeName);
                 Bundle arguments = new Bundle();
                 arguments.putBoolean(RecipeDetailFragment.ARG_ITEM_IS_STEP, isStep);
                 arguments.putString(RecipeDetailFragment.ARG_ITEM_JSON, stepJson);
@@ -302,14 +322,14 @@ public class RecipeActivity extends AppCompatActivity implements SharedPreferenc
 
         class RecipeItemViewHolder extends RecyclerView.ViewHolder {
             final View mView;
-            final ImageView mStepImageView
+            final ImageView mStepImageView;
             final TextView mTitleTextView;
 
             RecipeItemViewHolder(View view) {
                 super(view);
                 mView = view;
                 mTitleTextView = (TextView) view.findViewById(R.id.title);
-                mStepImageView = (TextView) view.findViewById(R.id.step_image_imageView);
+                mStepImageView = (ImageView) view.findViewById(R.id.step_image_imageView);
             }
 
         }

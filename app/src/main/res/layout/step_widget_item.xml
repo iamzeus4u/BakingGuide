@@ -23,6 +23,18 @@
         tools:text="Nutella Pie" />
 
     <TextView
+        android:id="@+id/recipe_description_textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        app:layout_constraintLeft_toLeftOf="@+id/recipe_servings_textView"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recipe_servings_textView"
+        tools:text="Description" />
+
+    <TextView
         android:id="@+id/recipe_servings_textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,15 +46,5 @@
         app:layout_constraintTop_toBottomOf="@+id/recipe_name_textView"
         tools:text="Servings" />
 
-    <TextView
-        android:id="@+id/recipe_description_textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-        app:layout_constraintLeft_toLeftOf="@+id/recipe_servings_textView"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recipe_servings_textView"
-        tools:text="Description" />
+
 </LinearLayout>

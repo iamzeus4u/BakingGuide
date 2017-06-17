@@ -89,34 +89,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         return mediaUtils;
     }
 
-    private class MySessionCallback extends MediaSessionCompat.Callback {
-        @Override
-        public void onPlay() {
-            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
-        }
-
-        @Override
-        public void onPause() {
-            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
-        }
-
-        @Override
-        public void onSkipToPrevious() {
-            if (mPosition > 0) {
-                mViewPager.setCurrentItem(--mPosition);
-                mSectionsPagerAdapter.onPageSelected(mPosition);
-            }
-        }
-
-        @Override
-        public void onSkipToNext() {
-            if (mPosition < mSectionsPagerAdapter.getCount()) {
-                mViewPager.setCurrentItem(++mPosition);
-                mSectionsPagerAdapter.onPageSelected(mPosition);
-            }
-        }
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -173,11 +145,39 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 .startChooser();
     }
 
+    private class MySessionCallback extends MediaSessionCompat.Callback {
+        @Override
+        public void onPlay() {
+            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
+        }
+
+        @Override
+        public void onPause() {
+            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            if (mPosition > 0) {
+                mViewPager.setCurrentItem(--mPosition);
+                mSectionsPagerAdapter.onPageSelected(mPosition);
+            }
+        }
+
+        @Override
+        public void onSkipToNext() {
+            if (mPosition < mSectionsPagerAdapter.getCount()) {
+                mViewPager.setCurrentItem(++mPosition);
+                mSectionsPagerAdapter.onPageSelected(mPosition);
+            }
+        }
+    }
+
     private class SectionsPagerAdapter extends FragmentPagerAdapter implements ViewPager.OnPageChangeListener {
         Gson gson = new Gson();
+        RecipeDetailFragment[] mFragment;
         private List<Recipe.Step> mSteps = new ArrayList<>();
         private List<Recipe.Ingredient> mIngredients = new ArrayList<>();
-        RecipeDetailFragment[] mFragment;
 
         SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -263,7 +263,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     });
                 } else {
                     appBarLayout.setTitle(getString(R.string.recipe_ingredient_item_title));
-                    imageView.setVisibility(View.INVISIBLE);
+                    imageView.setVisibility(View.GONE);
                     mFab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {

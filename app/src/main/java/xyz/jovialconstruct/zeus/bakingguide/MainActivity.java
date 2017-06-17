@@ -1,5 +1,7 @@
 package xyz.jovialconstruct.zeus.bakingguide;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -175,6 +177,11 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
         mRecipeRecyclerView.smoothScrollToPosition(mPosition);
         mMainActivityProgressBar.setVisibility(View.INVISIBLE);
         mRecipeRecyclerView.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, BakingAppWidget.class);
+        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), BakingAppWidget.class));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        sendBroadcast(intent);
         if (mIdlingResource != null) {
             mIdlingResource.setIdleState(true);
         }

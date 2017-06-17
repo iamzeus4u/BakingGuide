@@ -18,6 +18,7 @@ import xyz.jovialconstruct.zeus.bakingguide.data.RecipeProvider;
 
 
 public class StepListWidgetService extends RemoteViewsService {
+
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
         return new StepListRemoteViewsFactory(this.getApplicationContext());

@@ -1,5 +1,6 @@
 package xyz.jovialconstruct.zeus.bakingguide.utilities;
 
+import android.app.Application;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -45,7 +46,7 @@ public class MediaUtils implements ExoPlayer.EventListener {
 
     public void initializeMediaSession() {
         // Create a MediaSessionCompat.
-        mMediaSession = new MediaSessionCompat(context, "YEAH");
+        mMediaSession = new MediaSessionCompat(context, Application.class.getSimpleName());
         // Enable callbacks from MediaButtons and TransportControls.
         mMediaSession.setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
