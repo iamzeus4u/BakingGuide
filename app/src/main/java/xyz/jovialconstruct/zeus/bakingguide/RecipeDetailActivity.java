@@ -19,8 +19,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -244,9 +246,14 @@ public class RecipeDetailActivity extends AppCompatActivity {
         public void onPageSelected(final int position) {
             Activity activity = RecipeDetailActivity.this;
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+            ImageView imageView = (ImageView) activity.findViewById(R.id.recipe_thumbnail_image_view);
             if (appBarLayout != null) {
                 if (position > 0) {
+                    imageView.setVisibility(View.VISIBLE);
                     appBarLayout.setTitle(mSteps.get(position - 1).getShortDescription());
+                    if (mSteps.get(position - 1).getThumbnailURL() != null && !mSteps.get(position - 1).getThumbnailURL().isEmpty()) {
+                        Picasso.with(activity).load(mSteps.get(position - 1).getThumbnailURL()).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).into(imageView);
+                    }
                     mFab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -256,6 +263,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     });
                 } else {
                     appBarLayout.setTitle(getString(R.string.recipe_ingredient_item_title));
+                    imageView.setVisibility(View.INVISIBLE);
                     mFab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {

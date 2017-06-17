@@ -37,4 +37,7 @@
     <string name="step_string">Step</string>
     <string name="sharing_string">Sharing %s</string>
     <string name="ingredient_widget_title">Ingredients for %s</string>
+    <string name="action_favorite">Favorite</string>
+    <string name="pref_favourite_recipe_id_key">fav_recipe_id</string>
+    <string name="pref_favourite_recipe_id_default">4</string>
 </resources>

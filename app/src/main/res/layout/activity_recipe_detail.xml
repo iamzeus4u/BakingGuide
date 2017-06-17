@@ -10,7 +10,7 @@
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="250dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -38,6 +38,14 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
+            <ImageView
+                android:id="@+id/recipe_thumbnail_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.5"
+                app:srcCompat="@drawable/recipe_placeholder"
+                android:contentDescription="@string/image_description" />
+
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
@@ -62,7 +70,7 @@
         android:layout_margin="@dimen/fab_margin"
         app:layout_anchor="@+id/recipe_detail_container"
         app:layout_anchorGravity="top|end"
-        app:srcCompat="@android:drawable/stat_notify_chat" />
+        app:srcCompat="@android:drawable/ic_menu_share" />
 
 
 </android.support.design.widget.CoordinatorLayout>

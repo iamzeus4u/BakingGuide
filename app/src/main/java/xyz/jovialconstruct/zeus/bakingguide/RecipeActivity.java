@@ -1,16 +1,23 @@
 package xyz.jovialconstruct.zeus.bakingguide;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +38,7 @@ import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaUtils;
 
 import static xyz.jovialconstruct.zeus.bakingguide.MainActivity.RECIPE_ID;
 
-public class RecipeActivity extends AppCompatActivity {
+public class RecipeActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String RECIPE_NAME = "recipe_name";
     private boolean mTwoPane;
     private int mTwoPaneSelectedItem;
@@ -41,6 +48,7 @@ public class RecipeActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     private RecipeItemAdapter mRecipeItemAdapter;
     private MediaUtils mediaUtils;
+    private MenuItem mFav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +79,17 @@ public class RecipeActivity extends AppCompatActivity {
         if (findViewById(R.id.recipe_detail_container) != null) {
             mTwoPane = true;
             mediaUtils.initializeMediaSession();
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (isFav()) {
+            mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav1));
+        } else {
+            mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav0));
         }
     }
 
@@ -133,6 +152,34 @@ public class RecipeActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.recipe_activity, menu);
+        mFav = menu.findItem(R.id.action_favorite);
+        if (isFav()) {
+            mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav1));
+        } else {
+            mFav.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_fav0));
+        }
+        return true;
+    }
+
+    private boolean isFav() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        int favouriteRecipeId = Integer.parseInt(prefs.getString(getString(R.string.pref_favourite_recipe_id_key), getString(R.string.pref_favourite_recipe_id_default)));
+        if (favouriteRecipeId == mRecipeId) {
+            Intent intent = new Intent(this, BakingIngredientsWidget.class);
+            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), BakingIngredientsWidget.class));
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+            sendBroadcast(intent);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
@@ -140,11 +187,14 @@ public class RecipeActivity extends AppCompatActivity {
                 NavUtils.navigateUpFromSameTask(this);
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally{
+            } finally {
                 Intent startMainActivityIntent = new Intent(this, MainActivity.class);
                 startActivity(startMainActivityIntent);
             }
             return true;
+        } else if (id == R.id.action_favorite) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            prefs.edit().putString(getString(R.string.pref_favourite_recipe_id_key), String.valueOf(mRecipeId)).apply();
         }
         return super.onOptionsItemSelected(item);
     }

@@ -2,7 +2,9 @@ package xyz.jovialconstruct.zeus.bakingguide.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -36,15 +38,20 @@ class IngredientListRemoteViewsFactory implements RemoteViewsService.RemoteViews
 
     @Override
     public void onDataSetChanged() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        int favouriteRecipeId = Integer.parseInt(prefs.getString(mContext.getString(R.string.pref_favourite_recipe_id_key), mContext.getString(R.string.pref_favourite_recipe_id_default)));
         Cursor mCursor = mContext.getContentResolver().query(RecipeProvider.Recipes.CONTENT_URI, null, null, null, null);
         if (!(mCursor == null || mCursor.getCount() == 0)) {
-            if (mCursor.moveToPosition(1)) {
-                int id = mCursor.getInt(mCursor.getColumnIndex(RecipeColumns.ID));
-                String ingredientsJson = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.INGREDIENTS_JSON));
-                Gson gson = new Gson();
-                mIngredients = gson.fromJson(ingredientsJson, Recipe.Ingredient[].class);
-            }
+            int mRecipeId;
+            mCursor.moveToFirst();
+            String ingredientsJson;
+            do {
+                mRecipeId = mCursor.getInt(mCursor.getColumnIndex(RecipeColumns.ID));
+                ingredientsJson = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.INGREDIENTS_JSON));
+            } while (mCursor.moveToNext() && favouriteRecipeId != mRecipeId);
             mCursor.close();
+            Gson gson = new Gson();
+            mIngredients = gson.fromJson(ingredientsJson, Recipe.Ingredient[].class);
         }
     }
 

@@ -30,7 +30,9 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -132,9 +134,16 @@ public class RecipeDetailFragment extends Fragment {
                 recyclerView.setVisibility(View.INVISIBLE);
                 constraintLayout.setVisibility(View.VISIBLE);
                 simpleExoPlayerView.setVisibility(View.GONE);
+                if (mStep.getThumbnailURL() != null && !mStep.getThumbnailURL().isEmpty()) {
+                    try {
+                        simpleExoPlayerView.setDefaultArtwork(Picasso.with(getContext()).load(mStep.getThumbnailURL()).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).get());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 if (mStep.getVideoURL().contains("http")) {
                     simpleExoPlayer = setupPlayer(mStep.getVideoURL());
-                    setMediaIsh();
+                    setMediaUtils();
                     mediaUtils.setExtras(mTitle, simpleExoPlayer);
                     simpleExoPlayer.addListener(mediaUtils);
                     simpleExoPlayerView.setPlayer(simpleExoPlayer);
@@ -188,16 +197,15 @@ public class RecipeDetailFragment extends Fragment {
         }
         Log.d(LOG_TAG, "onDeSelected for " + mTitle);
     }
-
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         if (mValidPlayer) {
             simpleExoPlayer.release();
         }
     }
 
-    public void setMediaIsh() {
+    public void setMediaUtils() {
         if (getActivity() instanceof RecipeDetailActivity) {
             this.mediaUtils = ((RecipeDetailActivity) getActivity()).getMediaUtils();
         } else if (getActivity() instanceof RecipeActivity) {
