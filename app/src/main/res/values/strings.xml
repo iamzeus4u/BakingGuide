@@ -36,4 +36,5 @@
     <string name="image_description">the image for the selected recipe</string>
     <string name="step_string">Step</string>
     <string name="sharing_string">Sharing %s</string>
+    <string name="ingredient_widget_title">Ingredients for %s</string>
 </resources>

@@ -10,7 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 
-import xyz.jovialconstruct.zeus.bakingguide.adapters.ListWidgetService;
+import xyz.jovialconstruct.zeus.bakingguide.adapters.StepListWidgetService;
 
 /**
  * Implementation of App Widget functionality.
@@ -35,7 +35,7 @@ public class BakingAppWidget extends AppWidgetProvider {
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list_view);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.step_widget_list_view);
         updateAppWidget(context, appWidgetManager, appWidgetId);
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
@@ -53,16 +53,13 @@ public class BakingAppWidget extends AppWidgetProvider {
     private static RemoteViews getStepListRemoteView(Context context, int columns) {
         RemoteViews views;
         if (columns > 1) {
-            views = new RemoteViews(context.getPackageName(), R.layout.widget_list_view);
-            // Set the ListWidgetService intent to act as the adapter for the GridView
-            Intent intent = new Intent(context, ListWidgetService.class);
-            views.setRemoteAdapter(R.id.widget_list_view, intent);
-            // Set the PlantDetailActivity intent to launch when clicked
+            views = new RemoteViews(context.getPackageName(), R.layout.baking_steps_widget);
+            Intent intent = new Intent(context, StepListWidgetService.class);
+            views.setRemoteAdapter(R.id.step_widget_list_view, intent);
             Intent appIntent = new Intent(context, RecipeActivity.class);
             PendingIntent appPendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            views.setPendingIntentTemplate(R.id.widget_list_view, appPendingIntent);
-            // Handle empty gardens
-            views.setEmptyView(R.id.widget_list_view, R.id.empty_view);
+            views.setPendingIntentTemplate(R.id.step_widget_list_view, appPendingIntent);
+            views.setEmptyView(R.id.step_widget_list_view, R.id.empty_view);
         } else {
             views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
             Intent appIntent = new Intent(context, MainActivity.class);

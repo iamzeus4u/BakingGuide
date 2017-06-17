@@ -17,18 +17,18 @@ import xyz.jovialconstruct.zeus.bakingguide.data.RecipeColumns;
 import xyz.jovialconstruct.zeus.bakingguide.data.RecipeProvider;
 
 
-public class ListWidgetService extends RemoteViewsService {
+public class StepListWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new ListRemoteViewsFactory(this.getApplicationContext());
+        return new StepListRemoteViewsFactory(this.getApplicationContext());
     }
 }
 
-class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+class StepListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private Context mContext;
     private Cursor mCursor;
 
-    ListRemoteViewsFactory(Context applicationContext) {
+    StepListRemoteViewsFactory(Context applicationContext) {
         mContext = applicationContext;
     }
 
@@ -55,7 +55,7 @@ class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     @Override
     public RemoteViews getViewAt(int position) {
         int id = 0;
-        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.recipe_widget_item);
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.step_widget_item);
         if (mCursor == null || mCursor.getCount() == 0) return null;
         if (mCursor.moveToPosition(position)) {
             id = mCursor.getInt(mCursor.getColumnIndex(RecipeColumns.ID));
