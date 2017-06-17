@@ -20,7 +20,6 @@ import xyz.jovialconstruct.zeus.bakingguide.data.Recipe;
 
 public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.IngredientAdapterViewHolder> {
     private List<Recipe.Ingredient> mIngredients;
-    private Context context;
 
     public IngredientAdapter(List<Recipe.Ingredient> ingredients) {
         mIngredients = ingredients;
@@ -28,7 +27,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.In
 
     @Override
     public IngredientAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        context = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.ingredient_recyclerview_item, parent, false);
         return new IngredientAdapterViewHolder(view);
@@ -52,7 +51,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.In
         }
     }
 
-    public class IngredientAdapterViewHolder extends RecyclerView.ViewHolder {//implements OnClickListener {
+    class IngredientAdapterViewHolder extends RecyclerView.ViewHolder {//implements OnClickListener {
         @BindView(R.id.ingredients_recyclerview_item_textview)
         TextView mIngredientNameTextView;
         @BindView(R.id.ingredients_recyclerview_number_textview)
@@ -60,7 +59,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.In
         @BindView(R.id.ingredients_recyclerview_detail_textview)
         TextView mIngredientDetailTextView;
 
-        public IngredientAdapterViewHolder(View itemView) {
+        IngredientAdapterViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }

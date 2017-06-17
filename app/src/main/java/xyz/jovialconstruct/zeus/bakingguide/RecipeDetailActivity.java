@@ -6,12 +6,12 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
@@ -29,8 +29,9 @@ import java.util.List;
 import xyz.jovialconstruct.zeus.bakingguide.data.Recipe;
 import xyz.jovialconstruct.zeus.bakingguide.data.RecipeColumns;
 import xyz.jovialconstruct.zeus.bakingguide.data.RecipeProvider;
-import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaIsh;
+import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaUtils;
 
+import static xyz.jovialconstruct.zeus.bakingguide.R.id.fab;
 import static xyz.jovialconstruct.zeus.bakingguide.RecipeActivity.RECIPE_NAME;
 
 /**
@@ -47,7 +48,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private Cursor mCursor;
     private int mId;
     private String mRecipeName;
-    private MediaIsh mediaIsh;
+    private MediaUtils mediaUtils;
+    private FloatingActionButton mFab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +58,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        mFab = (FloatingActionButton) findViewById(fab);
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -71,15 +66,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
@@ -87,20 +73,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
             mRecipeName = getIntent().getStringExtra(RECIPE_NAME);
             mId = getIntent().getIntExtra(MainActivity.RECIPE_ID, 0);
             mCursor = getContentResolver().query(RecipeProvider.Recipes.withId(mId), null, null, null, null);
-
-            /*Bundle arguments = new Bundle();
-            arguments.putString(RecipeDetailFragment.ARG_ITEM_JSON,
-                    getIntent().getStringExtra(RecipeDetailFragment.ARG_ITEM_JSON));
-            arguments.putBoolean(RecipeDetailFragment.ARG_ITEM_IS_STEP,
-                    getIntent().getBooleanExtra(RecipeDetailFragment.ARG_ITEM_IS_STEP, true));
-            RecipeDetailFragment fragment = new RecipeDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.mId.recipe_detail_container, fragment)
-                    .commit();*/
         }
-        mediaIsh = new MediaIsh(this, new MySessionCallback());
-        mediaIsh.initializeMediaSession();
+        mediaUtils = new MediaUtils(this, new MySessionCallback());
+        mediaUtils.initializeMediaSession();
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.recipe_detail_container);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.recipe_detail_tabs);
@@ -108,15 +83,19 @@ public class RecipeDetailActivity extends AppCompatActivity {
         tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
     }
 
+    public MediaUtils getMediaUtils() {
+        return mediaUtils;
+    }
+
     private class MySessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
-            mediaIsh.getmExoPlayer().setPlayWhenReady(true);
+            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
         }
 
         @Override
         public void onPause() {
-            mediaIsh.getmExoPlayer().setPlayWhenReady(false);
+            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
         }
 
         @Override
@@ -144,7 +123,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         mViewPager.addOnPageChangeListener(mSectionsPagerAdapter);
         mViewPager.setCurrentItem(mPosition);
         mSectionsPagerAdapter.onPageSelected(mPosition);
-        mediaIsh.setRecipeName(mRecipeName);
+        mediaUtils.setRecipeName(mRecipeName);
     }
 
     @Override
@@ -176,13 +155,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. Use NavUtils to allow users
-            // to navigate up one level in the application structure. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
             Intent backIntent = new Intent(this, RecipeActivity.class);
             backIntent.putExtra(MainActivity.RECIPE_ID, mId);
             NavUtils.navigateUpTo(this, backIntent);
@@ -191,13 +163,21 @@ public class RecipeDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter implements ViewPager.OnPageChangeListener {
+    private void shareText(String shareText, String title) {
+        ShareCompat.IntentBuilder.from(this)
+                .setType("text/plain")
+                .setText(shareText)
+                .setChooserTitle(String.format(getString(R.string.sharing_string), title))
+                .startChooser();
+    }
+
+    private class SectionsPagerAdapter extends FragmentPagerAdapter implements ViewPager.OnPageChangeListener {
         Gson gson = new Gson();
         private List<Recipe.Step> mSteps = new ArrayList<>();
         private List<Recipe.Ingredient> mIngredients = new ArrayList<>();
         RecipeDetailFragment[] mFragment;
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
             mCursor.moveToFirst();
             String stepJson = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.STEPS_JSON));
@@ -211,8 +191,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
             return newInstance(position + 1);
         }
 
@@ -222,7 +200,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             return mSteps.size() + 1;
         }
 
-        public RecipeDetailFragment newInstance(int stepNumber) {
+        RecipeDetailFragment newInstance(int stepNumber) {
             final String stepJson;
             final boolean isStep;
             if (stepNumber > 1) {
@@ -240,7 +218,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
             arguments.putBoolean(RecipeDetailFragment.ARG_ITEM_IS_STEP, isStep);
             RecipeDetailFragment fragment = new RecipeDetailFragment();
             fragment.setArguments(arguments);
-            fragment.setMediaIsh(mediaIsh);
             mFragment[stepNumber - 1] = fragment;
             return fragment;
         }
@@ -254,7 +231,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 case 1:
                     return mSteps.get(position - 1).getShortDescription();
                 default:
-                    return String.format("%s %S", "Step", position);
+                    return String.format("%s %S", getString(R.string.step_string), position);
             }
         }
 
@@ -264,18 +241,35 @@ public class RecipeDetailActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onPageSelected(int position) {
+        public void onPageSelected(final int position) {
             Activity activity = RecipeDetailActivity.this;
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
                 if (position > 0) {
                     appBarLayout.setTitle(mSteps.get(position - 1).getShortDescription());
+                    mFab.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            String text = mSteps.get(position - 1).getDescription() + "\n" + mSteps.get(position - 1).getVideoURL();
+                            shareText(text, mSteps.get(position - 1).getShortDescription());
+                        }
+                    });
                 } else {
                     appBarLayout.setTitle(getString(R.string.recipe_ingredient_item_title));
+                    mFab.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            StringBuilder builder = new StringBuilder();
+                            for (int i = 0; i < mIngredients.size(); i++) {
+                                builder.append(mIngredients.get(i).getQuantity()).append(mIngredients.get(i).getMeasure()).append(" ").append(mIngredients.get(i).getIngredient()).append("\n");
+                            }
+                            String text = builder.deleteCharAt(builder.length() - 1).toString();
+                            shareText(text, getString(R.string.recipe_ingredient_item_title));
+                        }
+                    });
                 }
             }
             if (mFragment[position] != null) {
-                int length = mFragment.length - 1;
                 mFragment[position].onSelected();
                 if (position == 0) {
                     if (mFragment[position + 1] != null) {

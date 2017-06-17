@@ -5,15 +5,10 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.google.gson.Gson;
-import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
 
 import xyz.jovialconstruct.zeus.bakingguide.MainActivity;
 import xyz.jovialconstruct.zeus.bakingguide.R;
@@ -23,22 +18,18 @@ import xyz.jovialconstruct.zeus.bakingguide.data.RecipeProvider;
 
 
 public class ListWidgetService extends RemoteViewsService {
-    public static int sCellColumns;
-
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new ListRemoteViewsFactory(this.getApplicationContext(), sCellColumns);
+        return new ListRemoteViewsFactory(this.getApplicationContext());
     }
 }
 
 class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private Context mContext;
     private Cursor mCursor;
-    private int mCellColumns;
 
-    public ListRemoteViewsFactory(Context applicationContext, int sCellColumns) {
+    ListRemoteViewsFactory(Context applicationContext) {
         mContext = applicationContext;
-        this.mCellColumns = sCellColumns;
     }
 
     @Override
@@ -63,14 +54,12 @@ class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public RemoteViews getViewAt(int position) {
-        Log.d("Widget", "updateAppWidget: " + mCellColumns);
         int id = 0;
         RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.recipe_widget_item);
         if (mCursor == null || mCursor.getCount() == 0) return null;
         if (mCursor.moveToPosition(position)) {
             id = mCursor.getInt(mCursor.getColumnIndex(RecipeColumns.ID));
             String name = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.NAME));
-            String image = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.IMAGE));
             int servings = mCursor.getInt(mCursor.getColumnIndex(RecipeColumns.SERVINGS));
             String stepsJson = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.STEPS_JSON));
             String ingredientsJson = mCursor.getString(mCursor.getColumnIndex(RecipeColumns.INGREDIENTS_JSON));
@@ -80,20 +69,6 @@ class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
             Recipe.Ingredient[] ingredients = gson.fromJson(ingredientsJson, Recipe.Ingredient[].class);
             int numberOfSteps = steps.length;
             int numberOfIngredients = ingredients.length;
-            if (mCellColumns > 3) {
-                if (!image.isEmpty()) {
-                    try {
-                        views.setImageViewBitmap(R.id.recipe_image_imageView, Picasso.with(mContext).load(image).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).get());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    views.setImageViewResource(R.id.recipe_image_imageView, R.drawable.recipe_placeholder);
-                }
-                views.setViewVisibility(R.id.recipe_image_imageView, View.VISIBLE);
-            } else {
-                views.setViewVisibility(R.id.recipe_image_imageView, View.GONE);
-            }
             views.setTextViewText(R.id.recipe_name_textView, name);
             views.setTextViewText(R.id.recipe_servings_textView, resources.getQuantityString(R.plurals.servings, servings, servings));
             views.setTextViewText(R.id.recipe_description_textView, String.format("%s %s", resources.getQuantityString(R.plurals.ingredients, numberOfIngredients, numberOfIngredients), resources.getQuantityString(R.plurals.steps, numberOfSteps, numberOfSteps)));

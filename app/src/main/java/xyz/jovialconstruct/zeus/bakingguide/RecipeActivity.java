@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.NavUtils;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.ActionBar;
@@ -29,29 +27,20 @@ import butterknife.ButterKnife;
 import xyz.jovialconstruct.zeus.bakingguide.data.Recipe;
 import xyz.jovialconstruct.zeus.bakingguide.data.RecipeColumns;
 import xyz.jovialconstruct.zeus.bakingguide.data.RecipeProvider;
-import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaIsh;
+import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaUtils;
 
 import static xyz.jovialconstruct.zeus.bakingguide.MainActivity.RECIPE_ID;
 
-/**
- * An activity representing a list of Recipes. This activity
- * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link RecipeDetailActivity} representing
- * item details. On tablets, the activity presents the list of items and
- * item details side-by-side using two vertical panes.
- */
 public class RecipeActivity extends AppCompatActivity {
     public static final String RECIPE_NAME = "recipe_name";
     private boolean mTwoPane;
-    private Cursor mCursor;
     private int mTwoPaneSelectedItem;
     private int mRecipeId;
     private int mPosition = RecyclerView.NO_POSITION;
     @BindView(R.id.recipe_list)
     RecyclerView recyclerView;
     private RecipeItemAdapter mRecipeItemAdapter;
-    private MediaIsh mediaIsh;
+    private MediaUtils mediaUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +52,6 @@ public class RecipeActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-        // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -80,28 +60,29 @@ public class RecipeActivity extends AppCompatActivity {
         if (intentThatStartedActivity.hasExtra(RECIPE_ID)) {
             mRecipeId = intentThatStartedActivity.getIntExtra(RECIPE_ID, 1);
         }
-        mCursor = getContentResolver().query(RecipeProvider.Recipes.withId(mRecipeId), null, null, null, null);
+        Cursor mCursor = getContentResolver().query(RecipeProvider.Recipes.withId(mRecipeId), null, null, null, null);
         recyclerView.setHasFixedSize(true);
         mRecipeItemAdapter = new RecipeItemAdapter(this, mCursor);
         recyclerView.setAdapter(mRecipeItemAdapter);
-
-        mediaIsh = new MediaIsh(this, new MySessionCallback());
-
+        if (mCursor != null) {
+            mCursor.close();
+        }
+        mediaUtils = new MediaUtils(this, new MySessionCallback());
         if (findViewById(R.id.recipe_detail_container) != null) {
             mTwoPane = true;
-            mediaIsh.initializeMediaSession();
+            mediaUtils.initializeMediaSession();
         }
     }
 
     private class MySessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
-            mediaIsh.getmExoPlayer().setPlayWhenReady(true);
+            mediaUtils.getmExoPlayer().setPlayWhenReady(true);
         }
 
         @Override
         public void onPause() {
-            mediaIsh.getmExoPlayer().setPlayWhenReady(false);
+            mediaUtils.getmExoPlayer().setPlayWhenReady(false);
         }
 
         @Override
@@ -140,7 +121,7 @@ public class RecipeActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mediaIsh.release();
+        mediaUtils.release();
     }
 
     @Override
@@ -168,7 +149,11 @@ public class RecipeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class RecipeItemAdapter extends RecyclerView.Adapter<RecipeItemAdapter.RecipeItemViewHolder> {
+    public MediaUtils getMediaUtils() {
+        return mediaUtils;
+    }
+
+    class RecipeItemAdapter extends RecyclerView.Adapter<RecipeItemAdapter.RecipeItemViewHolder> {
 
         private final Cursor mRecipeCursor;
         private final Context mContext;
@@ -177,7 +162,7 @@ public class RecipeActivity extends AppCompatActivity {
         private List<Recipe.Step> mSteps = new ArrayList<>();
         private List<Recipe.Ingredient> mIngredients = new ArrayList<>();
 
-        public RecipeItemAdapter(Context context, Cursor recipeCursor) {
+        RecipeItemAdapter(Context context, Cursor recipeCursor) {
             mContext = context;
             mRecipeCursor = recipeCursor;
             mRecipeCursor.moveToFirst();
@@ -198,20 +183,19 @@ public class RecipeActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(final RecipeItemViewHolder holder, final int position) {
+        public void onBindViewHolder(final RecipeItemViewHolder holder, int position) {
             if (position != 0) {
                 final Recipe.Step mItem = mSteps.get(position - 1);
                 holder.mTitleTextView.setText(mItem.getShortDescription());
             } else {
-                List<Recipe.Ingredient> mItem = mIngredients;
                 holder.mTitleTextView.setText(R.string.recipe_ingredient_item_title);
-                int numberOfIngredients = mItem.size();
             }
+            final int tempPosition = position;
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    selectItem(position);
-                    mTwoPaneSelectedItem = position;
+                    selectItem(tempPosition);
+                    mTwoPaneSelectedItem = tempPosition;
                 }
             });
         }
@@ -221,21 +205,19 @@ public class RecipeActivity extends AppCompatActivity {
             return mSteps.size() + 1;
         }
 
-        public void selectItem(int mSelectedPosition) {
+        void selectItem(int mSelectedPosition) {
             final String stepJson;
             final boolean isStep;
-            mediaIsh.setRecipeName(mRecipeName);
+            mediaUtils.setRecipeName(mRecipeName);
 
             if (mSelectedPosition != 0) {
                 final Recipe.Step mItem = mSteps.get(mSelectedPosition - 1);
                 stepJson = gson.toJson(mItem);
                 isStep = true;
-                ;
             } else {
                 List<Recipe.Ingredient> mItem = mIngredients;
                 stepJson = gson.toJson(mItem);
                 isStep = false;
-                ;
             }
 
             if (mTwoPane) {
@@ -244,7 +226,6 @@ public class RecipeActivity extends AppCompatActivity {
                 arguments.putString(RecipeDetailFragment.ARG_ITEM_JSON, stepJson);
                 RecipeDetailFragment fragment = new RecipeDetailFragment();
                 fragment.setArguments(arguments);
-                fragment.setMediaIsh(mediaIsh);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.recipe_detail_container, fragment)
                         .commit();
@@ -259,16 +240,14 @@ public class RecipeActivity extends AppCompatActivity {
             }
         }
 
-        public class RecipeItemViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final TextView mTitleTextView;
-            //public final TextView mContentTextView;
+        class RecipeItemViewHolder extends RecyclerView.ViewHolder {
+            final View mView;
+            final TextView mTitleTextView;
 
-            public RecipeItemViewHolder(View view) {
+            RecipeItemViewHolder(View view) {
                 super(view);
                 mView = view;
                 mTitleTextView = (TextView) view.findViewById(R.id.title);
-                //mContentTextView = (TextView) view.findViewById(R.id.content);
             }
 
         }

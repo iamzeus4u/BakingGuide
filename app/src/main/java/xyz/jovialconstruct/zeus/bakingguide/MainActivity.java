@@ -1,8 +1,11 @@
 package xyz.jovialconstruct.zeus.bakingguide;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -35,7 +38,6 @@ import xyz.jovialconstruct.zeus.bakingguide.utilities.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeAdapterOnClickHandler, LoaderManager.LoaderCallbacks<Cursor> {
     public static final String RECIPE_ID = "recipe_id";
-    private static final String TAG = MainActivity.class.getSimpleName();
     private static final int RECIPE_LOADER_ID = 0;
     @BindView(R.id.recipe_recycler_view)
     RecyclerView mRecipeRecyclerView;
@@ -99,9 +101,16 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
         startActivity(intentToStartRecipeActivity);
     }
 
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (true) {
+        if (isOnline()) {
             return new AsyncTaskLoader<Cursor>(MainActivity.this) {
                 Cursor cursor = null;
 
@@ -157,7 +166,6 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
         } else {
             return new CursorLoader(MainActivity.this, RecipeProvider.Recipes.CONTENT_URI, null, null, null, null);
         }
-
     }
 
     @Override

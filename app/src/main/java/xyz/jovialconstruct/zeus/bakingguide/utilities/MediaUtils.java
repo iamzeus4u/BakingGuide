@@ -27,18 +27,17 @@ import static android.content.Context.NOTIFICATION_SERVICE;
  * Created by zeus on 13/06/2017.
  */
 
-public class MediaIsh implements ExoPlayer.EventListener {
-    public static MediaSessionCompat mMediaSession;
+public class MediaUtils implements ExoPlayer.EventListener {
+    private static MediaSessionCompat mMediaSession;
     private static String TAG;
-    public PlaybackStateCompat.Builder mStateBuilder;
+    private PlaybackStateCompat.Builder mStateBuilder;
     private SimpleExoPlayer mExoPlayer;
     private Context context;
-    private NotificationManager mNotificationManager;
     private android.support.v4.media.session.MediaSessionCompat.Callback mCallBack;
     private String mPlayingTitle;
     private String mRecipeName;
 
-    public MediaIsh(Context context, MediaSessionCompat.Callback callback) {
+    public MediaUtils(Context context, MediaSessionCompat.Callback callback) {
         this.context = context;
         this.mCallBack = callback;
         TAG = context.getClass().getSimpleName();
@@ -68,7 +67,7 @@ public class MediaIsh implements ExoPlayer.EventListener {
         mMediaSession.setActive(true);
     }
 
-    public void showNotification() {
+    private void showNotification() {
         PlaybackStateCompat state = mStateBuilder.build();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         int icon;
@@ -105,7 +104,7 @@ public class MediaIsh implements ExoPlayer.EventListener {
                 .setStyle(new NotificationCompat.MediaStyle()
                         .setMediaSession(mMediaSession.getSessionToken())
                         .setShowActionsInCompactView(0, 1));
-        mNotificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         mNotificationManager.notify(0, builder.build());
     }
 

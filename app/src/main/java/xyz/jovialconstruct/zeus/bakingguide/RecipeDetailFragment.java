@@ -1,6 +1,5 @@
 package xyz.jovialconstruct.zeus.bakingguide;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -38,7 +37,7 @@ import java.util.List;
 
 import xyz.jovialconstruct.zeus.bakingguide.adapters.IngredientAdapter;
 import xyz.jovialconstruct.zeus.bakingguide.data.Recipe;
-import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaIsh;
+import xyz.jovialconstruct.zeus.bakingguide.utilities.MediaUtils;
 import xyz.jovialconstruct.zeus.bakingguide.utilities.VideoCacheProxyFactory;
 
 /**
@@ -55,20 +54,14 @@ public class RecipeDetailFragment extends Fragment {
     public static final String ARG_ITEM_JSON = "item_json";
     public static final String ARG_ITEM_IS_STEP = "is_step";
     private static final String LOG_TAG = RecipeDetailFragment.class.getSimpleName();
-    private String mItemJson;
     private Recipe.Step mStep;
     private List<Recipe.Ingredient> mIngredients = new ArrayList<>();
     private String mTitle;
-    private Context mContext;
     private SimpleExoPlayerView simpleExoPlayerView;
     private SimpleExoPlayer simpleExoPlayer;
     private boolean mValidPlayer = false;
-    private MediaIsh mediaIsh;
+    private MediaUtils mediaUtils;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public RecipeDetailFragment() {
     }
 
@@ -76,9 +69,8 @@ public class RecipeDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Gson gson = new Gson();
-        mContext = getActivity();
         if (getArguments().containsKey(ARG_ITEM_JSON)) {
-            mItemJson = getArguments().getString(ARG_ITEM_JSON);
+            String mItemJson = getArguments().getString(ARG_ITEM_JSON);
             if (getArguments().containsKey(ARG_ITEM_IS_STEP)) {
                 if (getArguments().getBoolean(ARG_ITEM_IS_STEP)) {
                     mStep = gson.fromJson(mItemJson, Recipe.Step.class);
@@ -130,7 +122,6 @@ public class RecipeDetailFragment extends Fragment {
         }
         Log.e(LOG_TAG, "onCreateView for " + mTitle);
         View rootView = inflater.inflate(R.layout.recipe_detail, container, false);
-        mContext = getActivity();
         RecyclerView recyclerView = ((RecyclerView) rootView.findViewById(R.id.ingredients_recyclerview));
         ConstraintLayout constraintLayout = (ConstraintLayout) rootView.findViewById(R.id.recipe_step_container);
         TextView textView = ((TextView) rootView.findViewById(R.id.recipe_step_detail));
@@ -143,8 +134,9 @@ public class RecipeDetailFragment extends Fragment {
                 simpleExoPlayerView.setVisibility(View.GONE);
                 if (mStep.getVideoURL().contains("http")) {
                     simpleExoPlayer = setupPlayer(mStep.getVideoURL());
-                    mediaIsh.setExtras(mTitle, simpleExoPlayer);
-                    simpleExoPlayer.addListener(mediaIsh);
+                    setMediaIsh();
+                    mediaUtils.setExtras(mTitle, simpleExoPlayer);
+                    simpleExoPlayer.addListener(mediaUtils);
                     simpleExoPlayerView.setPlayer(simpleExoPlayer);
                     simpleExoPlayer.setPlayWhenReady(false);
                     simpleExoPlayerView.setVisibility(View.VISIBLE);
@@ -164,7 +156,6 @@ public class RecipeDetailFragment extends Fragment {
     public void onStart() {
         super.onStart();
         getUserVisibleHint();
-        Log.e(LOG_TAG, "onStart for " + mTitle);
     }
 
     @Override
@@ -195,7 +186,7 @@ public class RecipeDetailFragment extends Fragment {
         if (mValidPlayer) {
             simpleExoPlayer.setPlayWhenReady(false);
         }
-        Log.e(LOG_TAG, "onDeSelected for " + mTitle);
+        Log.d(LOG_TAG, "onDeSelected for " + mTitle);
     }
 
     @Override
@@ -206,7 +197,12 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 
-    public void setMediaIsh(MediaIsh mediaIsh) {
-        this.mediaIsh = mediaIsh;
+    public void setMediaIsh() {
+        if (getActivity() instanceof RecipeDetailActivity) {
+            this.mediaUtils = ((RecipeDetailActivity) getActivity()).getMediaUtils();
+        } else if (getActivity() instanceof RecipeActivity) {
+            this.mediaUtils = ((RecipeActivity) getActivity()).getMediaUtils();
+        }
+
     }
 }

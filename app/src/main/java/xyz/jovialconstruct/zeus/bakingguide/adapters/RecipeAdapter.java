@@ -76,14 +76,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdap
 
     public void swapCursor(Cursor data) {
         mCursor = data;
-        notifyDataSetChanged();        ;
+        notifyDataSetChanged();
     }
 
     public interface RecipeAdapterOnClickHandler {
         void onClick(int selectedRecipeId);
     }
 
-    public class RecipeAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
+    class RecipeAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
         @BindView(R.id.recipe_image_imageView)
         ImageView mRecipeImageView;
         @BindView(R.id.recipe_name_textView)
@@ -93,7 +93,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdap
         @BindView(R.id.recipe_description_textView)
         TextView mRecipeDescriptionTextView;
 
-        public RecipeAdapterViewHolder(View itemView) {
+        RecipeAdapterViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
             itemView.setOnClickListener(this);
