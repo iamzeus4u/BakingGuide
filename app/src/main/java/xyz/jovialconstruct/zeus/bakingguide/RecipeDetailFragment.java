@@ -1,5 +1,8 @@
 package xyz.jovialconstruct.zeus.bakingguide;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -31,8 +34,8 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -135,11 +138,24 @@ public class RecipeDetailFragment extends Fragment {
                 constraintLayout.setVisibility(View.VISIBLE);
                 simpleExoPlayerView.setVisibility(View.GONE);
                 if (mStep.getThumbnailURL() != null && !mStep.getThumbnailURL().isEmpty()) {
-                    try {
-                        simpleExoPlayerView.setDefaultArtwork(Picasso.with(getContext()).load(mStep.getThumbnailURL()).error(R.drawable.recipe_placeholder).placeholder(R.drawable.recipe_placeholder).get());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Picasso.with(getContext())
+                            .load(mStep.getThumbnailURL())
+                            .into(new Target() {
+                                @Override
+                                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                                    simpleExoPlayerView.setDefaultArtwork(bitmap);
+                                }
+
+                                @Override
+                                public void onBitmapFailed(Drawable errorDrawable) {
+                                    simpleExoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.recipe_placeholder));
+                                }
+
+                                @Override
+                                public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                                }
+                            });
                 }
                 if (mStep.getVideoURL().contains("http")) {
                     simpleExoPlayer = setupPlayer(mStep.getVideoURL());
@@ -197,6 +213,7 @@ public class RecipeDetailFragment extends Fragment {
         }
         Log.d(LOG_TAG, "onDeSelected for " + mTitle);
     }
+
     @Override
     public void onStop() {
         super.onStop();
