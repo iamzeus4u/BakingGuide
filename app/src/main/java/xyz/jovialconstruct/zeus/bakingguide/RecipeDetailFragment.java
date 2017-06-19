@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -137,7 +138,7 @@ public class RecipeDetailFragment extends Fragment {
                 recyclerView.setVisibility(View.INVISIBLE);
                 constraintLayout.setVisibility(View.VISIBLE);
                 simpleExoPlayerView.setVisibility(View.GONE);
-                if (mStep.getThumbnailURL() != null && !mStep.getThumbnailURL().isEmpty()) {
+                if (TextUtils.isEmpty(mStep.getThumbnailURL())) {
                     Picasso.with(getContext())
                             .load(mStep.getThumbnailURL())
                             .into(new Target() {
